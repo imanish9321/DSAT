@@ -1,0 +1,194 @@
+📘 Deep State Analysis Tool (DSAT)
+🧠 Objective
+
+To continuously monitor application health, detect abnormal behavior from logs/processes, and take automated corrective actions based on defined severity and scope.
+
+1️⃣ System Architecture (High Level)
+[Application] 
+     ↓
+[Log Files / Process Monitoring]
+     ↓
+[Bash Monitoring Engine]
+     ↓
+[Decision Engine (Rules + Severity)]
+     ↓
+[Action Engine]
+     ↓
+[Logging → DB → Dashboard (future)]
+2️⃣ Requirements Definition
+🔹 2.1 Application Details
+
+Define for each application:
+
+Application Name
+Binary/Service Path
+Process Name
+Config Path
+
+Example (config file):
+
+APP_NAME="freeswitch"
+APP_PROCESS="freeswitch"
+APP_START_CMD="systemctl start freeswitch"
+APP_STOP_CMD="systemctl stop freeswitch"
+APP_RESTART_CMD="systemctl restart freeswitch"
+APP_PATH="/usr/bin/freeswitch"
+🔹 2.2 Log File Definitions
+
+Define logs to monitor:
+
+LOG_FILES=(
+  "/var/log/freeswitch/freeswitch.log"
+  "/var/log/app/error.log"
+)
+
+Define patterns:
+
+ERROR_PATTERNS=(
+  "CRITICAL"
+  "ERROR"
+  "Segmentation fault"
+  "connection refused"
+)
+🔹 2.3 Scope of Work (Automation Boundaries)
+
+This is very important for production safety.
+
+Allowed Actions:
+Action	Condition
+Start	Process not running
+Stop	High failure rate
+Restart	Hang / repeated errors
+Alert only	Unknown issues
+NOT Allowed (initial phase):
+Config changes ❌
+DB modifications ❌
+Bulk cleanup ❌
+🔹 2.4 Severity Definition
+Severity	Condition	Action	SLA
+P1 (Critical)	App down / crash	Restart + Alert	Immediate
+P2 (Major)	Errors > threshold	Restart	5 min
+P3 (Minor)	Warning patterns	Alert only	15 min
+P4 (Info)	Normal logs	No action	-
+🔹 2.5 Incident States
+1. DETECTED
+2. ACTION_TRIGGERED
+3. FIXED
+4. ESCALATED
+5. UNRESOLVED
+3️⃣ Monitoring Logic (Core Engine)
+🔹 3.1 Process Check
+check_process() {
+    pgrep -x "$APP_PROCESS" > /dev/null
+    if [ $? -ne 0 ]; then
+        echo "Process not running"
+        return 1
+    fi
+    return 0
+}
+🔹 3.2 Log Analysis
+scan_logs() {
+    for file in "${LOG_FILES[@]}"; do
+        for pattern in "${ERROR_PATTERNS[@]}"; do
+            grep -i "$pattern" "$file" | tail -n 5
+        done
+    done
+}
+🔹 3.3 Error Threshold Logic
+ERROR_COUNT=$(grep -i "ERROR" /var/log/app.log | wc -l)
+
+if [ "$ERROR_COUNT" -gt 50 ]; then
+    SEVERITY="P2"
+fi
+4️⃣ Action Engine
+🔹 4.1 Restart Logic
+restart_app() {
+    echo "Restarting application..."
+    $APP_RESTART_CMD
+}
+🔹 4.2 Start/Stop Logic
+start_app() {
+    $APP_START_CMD
+}
+
+stop_app() {
+    $APP_STOP_CMD
+}
+🔹 4.3 Decision Engine
+if ! check_process; then
+    SEVERITY="P1"
+    start_app
+elif [ "$ERROR_COUNT" -gt 50 ]; then
+    SEVERITY="P2"
+    restart_app
+else
+    SEVERITY="P3"
+fi
+5️⃣ Alerting System
+🔹 5.1 Email Alert (Basic)
+send_alert() {
+    SUBJECT="[$SEVERITY] Issue detected in $APP_NAME"
+    echo "Issue detected at $(date)" | mail -s "$SUBJECT" team@example.com
+}
+🔹 5.2 Escalation Logic
+if [ "$SEVERITY" == "P1" ]; then
+    send_alert "L1"
+    sleep 300
+    send_alert "L2"
+fi
+6️⃣ Logging for Audit (Important for future DB)
+🔹 6.1 Local Log File
+echo "$(date),$APP_NAME,$SEVERITY,$ACTION" >> /var/log/dsat.log
+7️⃣ Future DB Design (for Dashboard)
+🔹 Table: incidents
+id	app_name	severity	status	action	timestamp
+🔹 Table: actions
+
+| id | incident_id | action_type | result | timestamp |
+
+🔹 Example Insert (later)
+INSERT INTO incidents (app_name, severity, status)
+VALUES ('freeswitch', 'P1', 'DETECTED');
+8️⃣ Directory Structure (Recommended)
+/opt/dsat/
+├── config/
+│   └── app.conf
+├── scripts/
+│   ├── monitor.sh
+│   ├── actions.sh
+│   └── alert.sh
+├── logs/
+│   └── dsat.log
+9️⃣ Execution Strategy
+🔹 Cron-based (initial phase)
+*/1 * * * * /opt/dsat/scripts/monitor.sh
+🔟 Phase-wise Implementation Plan
+✅ Phase 1 (Now - Bash Only)
+Process monitoring
+Log scanning
+Restart logic
+File-based logging
+🔜 Phase 2
+Add DB logging (MySQL/Postgres)
+Store incidents/actions
+🔜 Phase 3
+Dashboard (Grafana / custom UI)
+Alert visualization
+🔜 Phase 4
+Subscription strategy
+Multi-app monitoring
+Distributed agents
+💡 Pro Tips (Based on your profile)
+Keep logic stateless initially
+Avoid aggressive restarts (add cooldown)
+Always log before action (audit trail)
+Test in staging first
+🎯 Final Takeaway
+
+You’re building:
+
+👉 Auto-Healing Monitoring System (like mini-Nagios + self-recovery)
+
+Start simple:
+
+Check → Detect → Act → Log → Alert
