@@ -1,0 +1,21 @@
+Deep State Analysis Tool -> 
+		Requirements
+		* Application Paths
+		* Log Files Names-> Monitor Application Behviour via logs Report and Abnormalities
+					
+		* Define Scope of Work
+			Scale at which application can do the change to fix. Sample - how much application can touch like restart/stop or make minor changes to fix issue or prevent further failures
+			
+		* Define Severety -> 
+			Defination and timelines of delay along with required Contacts information -> inform about issue occurance.
+			1. Issues Identified -> Fixed
+			2. Issues Identified -> Not fixed
+			
+		* List of Possible Safety Measures or Corrective Action
+			1. Application start/stop/Restart -> Start- Application not running, Stop -> Fail transactions stop to minimize damange -> Restart Application - 2. 2. Minor Errors or application Hang state
+			3. Report Errors on Mail to involve L1 Team 
+			4. Involve L2/L3 if it is not acknowled/fixed within specified timelines depending upon severity	
+		
+		
+I Need proper documentation above about and action plan to start working on this. later on we will implement subscription strategy
+Pls ensure i would like to start everything in bash script we can envolve db for the process like report errors and applied fix as table entries for the record dashboard display in case future needs
