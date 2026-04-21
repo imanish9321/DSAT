@@ -20,3 +20,13 @@ import pyttsx3
 engine = pyttsx3.init()
 engine.say("Hi Manish, Welcome to Python")
 engine.runAndWait()
+
+import os
+directory_path = input("Enter directory path: ")
+
+# List Contents of a directory
+contents = os.listdir(directory_path)
+
+print(f"\nContents of '{directory_path}':\n")
+for item in contents:
+        print(item)
