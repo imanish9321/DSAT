@@ -24,3 +24,23 @@ PIP
 Pip is a package manager for python. You can use pip to install a module on your system.
 pip install flask         # Installs Flask Module
 
+Loan Module using pip: 
+PS C:\Users\Telemune> pip install pyjokes
+then import module in your code
+import pyjokes
+
+print("Printing Jokes using Pyjokes Module...")  #Use  for single line comments
+# Using pyjokes to print Random Jokes
+#Using Multiline Comments
+""""
+Hello now we are using multiline comments
+Learnning Python 
+"""
+joke = pyjokes.get_joke()
+print(joke)
+
+Types of Module
+1. Internal Module: Preinstalled in Python
+2. External Module: 
+
+
