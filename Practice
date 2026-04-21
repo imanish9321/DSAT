@@ -1,1 +1,22 @@
+Important Modules 
+pip install pyjokes                   #Random Jokes
+pip install pyttsx3                   #Python Text to speech Module
 
+import pyjokes
+
+# Using pyjokes to print Random Jokes            # Single Line Comments
+print("Printing Jokes using Pyjokes Module...")  #Use  for single line comments
+
+#Using Multiline Comments
+""""                                            # Multiline Comments
+Hello now we are using multiline comments        
+Learnning Python                                 # Multiline Comments
+"""
+joke = pyjokes.get_joke()
+print(joke)
+
+# Import module pyttsx {Python text to speech}
+import pyttsx3
+engine = pyttsx3.init()
+engine.say("Hi Manish, Welcome to Python")
+engine.runAndWait()
